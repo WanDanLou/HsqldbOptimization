@@ -4,3 +4,7 @@
 tmp
 classes
 out
+*.properties
+*.script
+*.data
+*.log
