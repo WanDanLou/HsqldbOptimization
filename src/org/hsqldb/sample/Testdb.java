@@ -1,49 +1,16 @@
-/* Copyright (c) 2001-2011, The HSQL Development Group
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- *
- * Neither the name of the HSQL Development Group nor the names of its
- * contributors may be used to endorse or promote products derived from this
- * software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL HSQL DEVELOPMENT GROUP, HSQLDB.ORG,
- * OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 
 package org.hsqldb.sample;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-
-//import java.io.BufferedReader;
-//import java.io.File;
-//import java.io.FileNotFoundException;
-//import java.io.FileReader;
-//import java.io.IOException;
-
 
 /**
  * Title:        Testdb
@@ -72,7 +39,7 @@ public class Testdb {
         // of the db.
         // It can contain directory names relative to the
         // current working directory
-        conn = DriverManager.getConnection("jdbc:hsqldb:hsql://localhost:9001/"
+        conn = DriverManager.getConnection("jdbc:hsqldb:"
                                            + db_file_name_prefix,    // filenames
                                            "SA",                     // username
                                            "");                      // password
@@ -145,9 +112,9 @@ public class Testdb {
         for (; rs.next(); ) {
             for (i = 0; i < colmax; ++i) {
                 o = rs.getObject(i + 1);    // Is SQL the first column is indexed
-
                 // with 1 not 0
-                System.out.print(o.toString() + " ");
+                if(o != null)System.out.print(o.toString() + " ");
+                else System.out.format("%-"+meta.getPrecision(i+1)+"s ", "null");
             }
 
             System.out.println(" ");
@@ -157,81 +124,38 @@ public class Testdb {
     public static void main(String[] args) {
 
         Testdb db = null;
-
+        long startTime = System.currentTimeMillis();
         try {
-            db = new Testdb("");
+            db = new Testdb("hsql://123.206.20.40:9001/");
         } catch (Exception ex1) {
             ex1.printStackTrace();    // could not start db
 
             return;                   // bye bye
         }
-
-//        try {
-//
-//            //make an empty table
-//            //
-//            // by declaring the id column IDENTITY, the db will automatically
-//            // generate unique values for new rows- useful for row keys
-//
-//        } catch (SQLException ex2) {
-//
-//            //ignore
-//            //ex2.printStackTrace();  // second time we run program
-//            //  should throw execption since table
-//            // already there
-//            //
-//            // this will have no effect on the db
-//        }
-
+        String path = "./19.sql";
+        String expression="";
         try {
-
-            // add some rows - will create duplicates if run more then once
-            // the id column is automatically generated
-            String str = "select\n" +
-                    "  sum(l_extendedprice* (1 - l_discount)) as revenue\n" +
-                    "from\n" +
-                    "  lineitem,\n" +
-                    "  part\n" +
-                    "where\n" +
-                    "  (\n" +
-                    "    p_partkey = l_partkey\n" +
-                    "    and p_brand = 'Brand#33'\n" +
-                    "    and p_container in ('SM CASE', 'SM BOX', 'SM PACK', 'SM PKG')\n" +
-                    "    and l_quantity >= 8 and l_quantity <= 8 + 10\n" +
-                    "    and p_size between 1 and 5\n" +
-                    "    and l_shipmode in ('AIR', 'AIR REG')\n" +
-                    "    and l_shipinstruct = 'DELIVER IN PERSON'\n" +
-                    "  )\n" +
-                    "  or\n" +
-                    "  (\n" +
-                    "    p_partkey = l_partkey\n" +
-                    "    and p_brand = 'Brand#32'\n" +
-                    "    and p_container in ('MED BAG', 'MED BOX', 'MED PKG', 'MED PACK')\n" +
-                    "    and l_quantity >= 19 and l_quantity <= 19 + 10\n" +
-                    "    and p_size between 1 and 10\n" +
-                    "    and l_shipmode in ('AIR', 'AIR REG')\n" +
-                    "    and l_shipinstruct = 'DELIVER IN PERSON'\n" +
-                    "  )\n" +
-                    "  or\n" +
-                    "  (\n" +
-                    "    p_partkey = l_partkey\n" +
-                    "    and p_brand = 'Brand#13'and p_container in ('LG CASE', 'LG BOX', 'LG PACK', 'LG PKG')\n" +
-                    "    and l_quantity >= 26 and l_quantity <= 26 + 10\n" +
-                    "    and p_size between 1 and 15\n" +
-                    "    and l_shipmode in ('AIR', 'AIR REG')\n" +
-                    "    and l_shipinstruct = 'DELIVER IN PERSON'\n" +
-                    "  );";
-
-            long st, ed;
-            st = System.currentTimeMillis();
-            db.query(str);
-            ed = System.currentTimeMillis();
-            System.out.println("SQL query 19 run time: " + (ed-st) + " ms.");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(path), "UTF-8"));
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                if(line.startsWith("--") || line.startsWith(":"))continue;
+                expression += line + "\r\n";
+            }
+            reader.close();
+        }  catch (IOException e) {
+            e.printStackTrace();
+        }
+        //System.out.print(expression);
+        try {
+            db.query(expression);
             // at end of program
             //db.shutdown();
-        } catch (SQLException ex3) {
-            ex3.printStackTrace();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
+        long endTime   = System.currentTimeMillis();
+        long totalTime = endTime - startTime;
+        System.out.print(totalTime*1.0/1000);
     }    // main()
 }    // class Testdb
 
