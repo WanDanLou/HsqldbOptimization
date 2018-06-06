@@ -9,3 +9,8 @@ out
 *.data
 *.log
 *.lck
+/out
+/sample
+/stylesheets
+19.sql
+/.idea
