@@ -8,3 +8,4 @@ out
 *.script
 *.data
 *.log
+*.lck

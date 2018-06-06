@@ -59,6 +59,9 @@ import org.hsqldb.result.ResultProperties;
 import org.hsqldb.types.Type;
 import org.hsqldb.types.Types;
 
+import java.util.Arrays;
+import java.util.Comparator;
+
 /**
  * Implementation of an SQL query specification, including SELECT.
  *
@@ -203,6 +206,26 @@ public class QuerySpecification extends QueryExpression {
             rangeVariables = new RangeVariable[rangeVariableList.size()];
 
             rangeVariableList.toArray(rangeVariables);
+        }
+
+        // JYH Modified: Try to change the order of the rangeVariables according to the table size.
+
+        if (rangeVariables.length == 2) {
+            long[] rangeVariablesSize = new long[rangeVariables.length];
+            Table table;
+            PersistentStore store;
+            for (int i = 0; i < rangeVariables.length; i++) {
+                table = rangeVariables[i].getTable();
+                table.materialise(session);
+                store = table.getRowStore(session);
+                rangeVariablesSize[i] = store.elementCount(session);
+            }
+
+            if (rangeVariablesSize[0] > rangeVariablesSize[1]) {
+                RangeVariable temp = rangeVariables[0];
+                rangeVariables[0] = rangeVariables[1];
+                rangeVariables[1] = temp;
+            }
         }
 
         for (int i = 0; i < rangeVariables.length; i++) {

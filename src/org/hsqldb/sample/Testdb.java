@@ -38,6 +38,13 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+//import java.io.BufferedReader;
+//import java.io.File;
+//import java.io.FileNotFoundException;
+//import java.io.FileReader;
+//import java.io.IOException;
+
+
 /**
  * Title:        Testdb
  * Description:  simple hello world db example of a
@@ -65,7 +72,7 @@ public class Testdb {
         // of the db.
         // It can contain directory names relative to the
         // current working directory
-        conn = DriverManager.getConnection("jdbc:hsqldb:"
+        conn = DriverManager.getConnection("jdbc:hsqldb:hsql://localhost:9001/"
                                            + db_file_name_prefix,    // filenames
                                            "SA",                     // username
                                            "");                      // password
@@ -152,49 +159,76 @@ public class Testdb {
         Testdb db = null;
 
         try {
-            db = new Testdb("db_file");
+            db = new Testdb("");
         } catch (Exception ex1) {
             ex1.printStackTrace();    // could not start db
 
             return;                   // bye bye
         }
 
-        try {
-
-            //make an empty table
-            //
-            // by declaring the id column IDENTITY, the db will automatically
-            // generate unique values for new rows- useful for row keys
-            db.update(
-                "CREATE TABLE sample_table ( id INTEGER IDENTITY, str_col VARCHAR(256), num_col INTEGER)");
-        } catch (SQLException ex2) {
-
-            //ignore
-            //ex2.printStackTrace();  // second time we run program
-            //  should throw execption since table
-            // already there
-            //
-            // this will have no effect on the db
-        }
+//        try {
+//
+//            //make an empty table
+//            //
+//            // by declaring the id column IDENTITY, the db will automatically
+//            // generate unique values for new rows- useful for row keys
+//
+//        } catch (SQLException ex2) {
+//
+//            //ignore
+//            //ex2.printStackTrace();  // second time we run program
+//            //  should throw execption since table
+//            // already there
+//            //
+//            // this will have no effect on the db
+//        }
 
         try {
 
             // add some rows - will create duplicates if run more then once
             // the id column is automatically generated
-            db.update(
-                "INSERT INTO sample_table(str_col,num_col) VALUES('Ford', 100)");
-            db.update(
-                "INSERT INTO sample_table(str_col,num_col) VALUES('Toyota', 200)");
-            db.update(
-                "INSERT INTO sample_table(str_col,num_col) VALUES('Honda', 300)");
-            db.update(
-                "INSERT INTO sample_table(str_col,num_col) VALUES('GM', 400)");
+            String str = "select\n" +
+                    "  sum(l_extendedprice* (1 - l_discount)) as revenue\n" +
+                    "from\n" +
+                    "  lineitem,\n" +
+                    "  part\n" +
+                    "where\n" +
+                    "  (\n" +
+                    "    p_partkey = l_partkey\n" +
+                    "    and p_brand = 'Brand#33'\n" +
+                    "    and p_container in ('SM CASE', 'SM BOX', 'SM PACK', 'SM PKG')\n" +
+                    "    and l_quantity >= 8 and l_quantity <= 8 + 10\n" +
+                    "    and p_size between 1 and 5\n" +
+                    "    and l_shipmode in ('AIR', 'AIR REG')\n" +
+                    "    and l_shipinstruct = 'DELIVER IN PERSON'\n" +
+                    "  )\n" +
+                    "  or\n" +
+                    "  (\n" +
+                    "    p_partkey = l_partkey\n" +
+                    "    and p_brand = 'Brand#32'\n" +
+                    "    and p_container in ('MED BAG', 'MED BOX', 'MED PKG', 'MED PACK')\n" +
+                    "    and l_quantity >= 19 and l_quantity <= 19 + 10\n" +
+                    "    and p_size between 1 and 10\n" +
+                    "    and l_shipmode in ('AIR', 'AIR REG')\n" +
+                    "    and l_shipinstruct = 'DELIVER IN PERSON'\n" +
+                    "  )\n" +
+                    "  or\n" +
+                    "  (\n" +
+                    "    p_partkey = l_partkey\n" +
+                    "    and p_brand = 'Brand#13'and p_container in ('LG CASE', 'LG BOX', 'LG PACK', 'LG PKG')\n" +
+                    "    and l_quantity >= 26 and l_quantity <= 26 + 10\n" +
+                    "    and p_size between 1 and 15\n" +
+                    "    and l_shipmode in ('AIR', 'AIR REG')\n" +
+                    "    and l_shipinstruct = 'DELIVER IN PERSON'\n" +
+                    "  );";
 
-            // do a query
-            db.query("SELECT * FROM sample_table WHERE num_col < 250");
-
+            long st, ed;
+            st = System.currentTimeMillis();
+            db.query(str);
+            ed = System.currentTimeMillis();
+            System.out.println("SQL query 19 run time: " + (ed-st) + " ms.");
             // at end of program
-            db.shutdown();
+            //db.shutdown();
         } catch (SQLException ex3) {
             ex3.printStackTrace();
         }
