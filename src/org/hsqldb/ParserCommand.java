@@ -79,7 +79,7 @@ public class ParserCommand extends ParserDDL {
         HsqlArrayList list = new HsqlArrayList();
         Statement     cs   = null;
 
-        reset(session, sql);
+        reset(session, sql); //初始化session
 
         while (true) {
             if (token.tokenType == Tokens.X_ENDPARSE) {
@@ -88,7 +88,7 @@ public class ParserCommand extends ParserDDL {
 
             try {
                 lastError = null;
-                cs        = compilePart(cmd.getExecuteProperties());
+                cs        = compilePart(cmd.getExecuteProperties());//编译一句话
             } catch (HsqlException e) {
                 if (lastError != null && lastError.getLevel() > e.getLevel()) {
                     throw lastError;
@@ -140,10 +140,10 @@ public class ParserCommand extends ParserDDL {
         Statement cs;
 
         compileContext.reset();
-        setParsePosition(getPosition());
+        setParsePosition(getPosition()); //0
 
         if (token.tokenType == Tokens.X_STARTPARSE) {
-            read();
+            read(); // token ->SELECT
         }
 
         switch (token.tokenType) {

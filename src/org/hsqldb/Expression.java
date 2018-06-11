@@ -55,6 +55,7 @@ import org.hsqldb.types.NullType;
 import org.hsqldb.types.RowType;
 import org.hsqldb.types.Type;
 import org.hsqldb.types.Types;
+import org.hsqldb.util.preprocessor.Option;
 
 /**
  * Expression class.
@@ -2140,5 +2141,77 @@ public class Expression implements Cloneable {
 
     public void setCollation(Collation collation) {
         this.collation = collation;
+    }
+
+    public boolean compareNode(Expression e) {
+        if(this.opType == OpTypes.AND){
+            return this.getRightNode().compareNode(e)| this.getLeftNode().compareNode(e);
+        }
+        else{
+            if(this.equals(e)){
+                this.opType = OpTypes.VALUE;
+                this.valueData = true;
+                return true;
+            }
+            else return false;
+        }
+    }
+
+    public Expression findNodeIn(Expression e){
+        if(this.opType == OpTypes.AND){
+            Expression l = this.getLeftNode().findNodeIn(e);
+            Expression r = this.getRightNode().findNodeIn(e);
+            if(l == null){
+                return r;
+            }
+            else{
+                if(r == null) {
+                    return l;
+                }
+                else {
+                    if(l.isTrue())return r.isTrue()?Expression.EXPR_TRUE:r;
+                    else if(r.isTrue())return l;
+                    else return new ExpressionLogical(OpTypes.AND, l, r);
+                }
+            }
+        }
+        else{
+            if(e.compareNode(this)){
+                Expression t =  this.duplicate();
+                this.opType = OpTypes.VALUE;
+                this.valueData = true;
+                return t;
+            }
+            else {
+                return null;
+            }
+        }
+    }
+
+    public Expression extractFromOrExpression(){
+        if(this.opType == OpTypes.OR){
+            Expression l = this.getLeftNode().extractFromOrExpression();
+            Expression r = this.getRightNode().extractFromOrExpression();
+            Expression same = l.findNodeIn(r);
+            if(same == null)return new ExpressionLogical(OpTypes.OR, l, r);
+            else return new ExpressionLogical(OpTypes.AND,new ExpressionLogical(OpTypes.OR, l, r), same);
+        }
+        else if(this.opType == OpTypes.AND){
+            Expression l = this.getLeftNode().extractFromOrExpression();
+            Expression r = this.getRightNode().extractFromOrExpression();
+            return new ExpressionLogical(OpTypes.AND, l, r);
+        }
+        return this;
+    }
+
+    public void output(){
+        if(this.opType != OpTypes.AND && this.opType != OpTypes.OR)return;
+        System.out.print("(");
+        this.getLeftNode().output();
+        System.out.print(")");
+        System.out.print(this.opType);
+        System.out.print("(");
+        this.getRightNode().output();
+        System.out.print(")");
     }
 }

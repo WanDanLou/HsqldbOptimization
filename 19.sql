@@ -1,13 +1,13 @@
-﻿-- count 122
+-- count 122
 -- Lineitem 主键 L_ORDERKEY,L_LINENUMBER /6001215
 -- part 主键 P_PARTKEY /200000
 :x
 :o
 select
-  sum(l_extendedprice* (1 - l_discount)) as revenue
+sum(l_extendedprice* (1 - l_discount)) as revenue
 from
-  lineitem,
-  part
+lineitem,
+part
 where
 (
 p_partkey = l_partkey

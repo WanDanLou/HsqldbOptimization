@@ -170,7 +170,7 @@ public class RangeVariableResolver {
         }
 
         for (int j = 0; j < queryConditions.size(); j++) {
-            Expression e = (Expression) queryConditions.get(j);
+            Expression e = (Expression) queryConditions.get(j); //只有一个
 
             if (e.isTrue()) {
                 continue;
@@ -630,18 +630,28 @@ public class RangeVariableResolver {
 
     void reorderRanges(HsqlArrayList starts, HsqlArrayList joins) {
 
-        if (starts.size() == 0) {
+        /*if (starts.size() == 0) {
             return;
-        }
+        }*/
 
         int           position = -1;
         RangeVariable range    = null;
-        double        cost     = 1024;
+        double        cost     = -1; //以第一个表的cost为基准
 
         for (int i = 0; i < firstLeftJoinIndex; i++) {
             Table table = rangeVariables[i].rangeTable;
 
             if (table instanceof TableDerived) {
+                continue;
+            }
+
+            double currentCost = table.getRowStore(session).elementCount();
+            if (currentCost < cost || cost < 0) {
+                cost     = currentCost;
+                position = i;
+            }
+
+            if (starts.size() == 0) {
                 continue;
             }
 
@@ -654,11 +664,11 @@ public class RangeVariableResolver {
             for (int j = 0; j < indexes.length; j++) {
                 index = indexes[j].index;
 
-                double currentCost = searchCost(session, table, index,
+                currentCost = searchCost(session, table, index,
                                                 indexes[j].columnCount,
                                                 OpTypes.EQUAL);
 
-                if (currentCost < cost) {
+                if (currentCost < cost ) {
                     cost     = currentCost;
                     position = i;
                 }
@@ -673,14 +683,17 @@ public class RangeVariableResolver {
                     index = table.getIndexForColumn(session, colIndex);
 
                     if (index != null) {
-                        cost = table.getRowStore(session).elementCount() / 2.0;
+                        currentCost = table.getRowStore(session).elementCount() / 2.0;
 
                         if (colIndexSetOther.get(colIndex, 0) > 1) {
-                            cost /= 2;
+                            currentCost /= 2;
                         }
-
                         break;
                     }
+                }
+                if (currentCost < cost ) {
+                    cost     = currentCost;
+                    position = i;
                 }
             }
 
@@ -688,11 +701,11 @@ public class RangeVariableResolver {
                 continue;
             }
 
+            /*
             if (i == 0) {
                 position = 0;
-
                 break;
-            }
+            }*/
         }
 
         if (position < 0) {
@@ -704,7 +717,6 @@ public class RangeVariableResolver {
         }
 
         RangeVariable[] newRanges = new RangeVariable[rangeVariables.length];
-
         ArrayUtil.copyArray(rangeVariables, newRanges, rangeVariables.length);
 
         range               = newRanges[position];
@@ -762,11 +774,12 @@ public class RangeVariableResolver {
             }
         }
 
+        ArrayUtil.copyArray(newRanges, rangeVariables, rangeVariables.length);
+
         if (position != firstLeftJoinIndex) {
             return;
         }
 
-        ArrayUtil.copyArray(newRanges, rangeVariables, rangeVariables.length);
         joins.clear();
 
         for (int i = 0; i < firstLeftJoinIndex; i++) {

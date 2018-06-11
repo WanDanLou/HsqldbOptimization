@@ -1075,7 +1075,7 @@ public class ParserDQL extends ParserBase {
             }
         }
 
-        QueryExpression queryExpression = XreadQueryExpressionBody();
+        QueryExpression queryExpression = XreadQueryExpressionBody(); //解析整个语句直到最后的;
         SortAndSlice    sortAndSlice    = XreadOrderByExpression();
 
         if (queryExpression.sortAndSlice == null) {
@@ -1098,7 +1098,7 @@ public class ParserDQL extends ParserBase {
 
         compileContext.unregisterSubqueries();
 
-        return queryExpression;
+        return queryExpression; //rangeVariableList 参与的表 queryCondition 返回了一个二叉？树，记录了where中条件的情况
     }
 
     QueryExpression XreadQueryExpressionBody() {
@@ -1553,7 +1553,10 @@ public class ParserDQL extends ParserBase {
             read();
 
             Expression e = XreadBooleanValueExpression();
-
+            //e.output();
+            if(e.opType == OpTypes.OR){ //提出and的条件
+                //e = e.extractFromOrExpression();
+            }
             select.addQueryCondition(e);
         }
 
@@ -6599,7 +6602,7 @@ public class ParserDQL extends ParserBase {
             int props, boolean isRoutine) {
 
         OrderedHashSet  colNames        = null;
-        QueryExpression queryExpression = XreadQueryExpression();
+        QueryExpression queryExpression = XreadQueryExpression();//解析语句的各个部分
 
         if (token.tokenType == Tokens.FOR) {
             read();
