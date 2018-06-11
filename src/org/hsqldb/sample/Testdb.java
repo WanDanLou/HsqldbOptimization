@@ -138,7 +138,9 @@ public class Testdb {
             BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(path), "UTF-8"));
             String line = "";
             while ((line = reader.readLine()) != null) {
-                if(line.startsWith("--") || line.startsWith(":"))continue;
+                if(line.startsWith("--") || line.startsWith(":")){
+                    continue;
+                }
                 expression += line + "\r\n";
             }
             reader.close();

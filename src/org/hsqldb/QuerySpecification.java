@@ -210,6 +210,7 @@ public class QuerySpecification extends QueryExpression {
 
         // JYH Modified: Try to change the order of the rangeVariables according to the table size.
 
+        /*
         if (rangeVariables.length == 2) {
             long[] rangeVariablesSize = new long[rangeVariables.length];
             Table table;
@@ -226,7 +227,7 @@ public class QuerySpecification extends QueryExpression {
                 rangeVariables[0] = rangeVariables[1];
                 rangeVariables[1] = temp;
             }
-        }
+        }*/
 
         for (int i = 0; i < rangeVariables.length; i++) {
             RangeGroup rangeGroup;

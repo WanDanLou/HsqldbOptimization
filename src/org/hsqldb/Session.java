@@ -1225,7 +1225,7 @@ public class Session implements SessionInterface {
         }
 
         try {
-            list = parser.compileStatements(sql, cmd);
+            list = parser.compileStatements(sql, cmd); //将原sql语句编译statement
         } catch (Throwable e) {
             return Result.newErrorResult(e);
         }

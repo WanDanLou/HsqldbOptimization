@@ -248,7 +248,7 @@ public class ParserBase {
 
     void read() {
 
-        scanner.scanNext();
+        scanner.scanNext(); //读下一句
 
         if (token.isMalformed) {
             int errorCode = -1;

@@ -271,7 +271,7 @@ public class Scanner {
 
         boolean needsDelimiter = !token.isDelimiter;
 
-        scanToken();
+        scanToken(); //token -> select
 
         if (needsDelimiter && !token.isDelimiter) {
 

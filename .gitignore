@@ -9,6 +9,7 @@ out
 *.data
 *.log
 *.lck
+workspace.xml
 /out
 /sample
 /stylesheets
