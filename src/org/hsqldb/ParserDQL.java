@@ -1553,10 +1553,12 @@ public class ParserDQL extends ParserBase {
             read();
 
             Expression e = XreadBooleanValueExpression();
-            //e.output();
+            /*e.output();
             if(e.opType == OpTypes.OR){ //提出and的条件
-                //e = e.extractFromOrExpression();
+                e = e.extractFromOrExpression();
+                e = e.removeTrue();
             }
+            e.output();*/
             select.addQueryCondition(e);
         }
 

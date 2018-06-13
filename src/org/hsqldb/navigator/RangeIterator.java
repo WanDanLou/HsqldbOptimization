@@ -31,6 +31,7 @@
 
 package org.hsqldb.navigator;
 
+
 /**
  * @author Fred Toussi (fredt@users dot sourceforge.net)
  * @version 2.3.5
@@ -45,4 +46,5 @@ public interface RangeIterator extends RowIterator {
     void reset();
 
     int getRangePosition();
+
 }
