@@ -1563,9 +1563,9 @@ public class QuerySpecification extends QueryExpression {
         if(rangeVariables.length >= 2){
             RangeIteratorOR last = rangeIteratorsOR[rangeVariables.length - 1];
             for(int i = rangeVariables.length - 2; i >= 0; i--) {
-                //rangeIteratorsOR[i].setConditionsOR(last.getConditions());
-                //rangeIteratorsOR[i].setjoinConditionsOR(last.getjoinConditions());
-                //rangeIteratorsOR[i].setWhereConditionsOR(last.getwhereConditions());
+                rangeIteratorsOR[i].setConditionsOR(last.getConditions());
+                rangeIteratorsOR[i].setjoinConditionsOR(last.getjoinConditions());
+                rangeIteratorsOR[i].setWhereConditionsOR(last.getwhereConditions());
             }
         }
         for (int currentIndex = 0; ; ) {
