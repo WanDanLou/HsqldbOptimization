@@ -50,6 +50,7 @@ import org.hsqldb.lib.OrderedIntHashSet;
 import org.hsqldb.lib.Set;
 import org.hsqldb.map.ValuePool;
 import org.hsqldb.navigator.RangeIterator;
+import org.hsqldb.navigator.RangeIteratorOR;
 import org.hsqldb.navigator.RowSetNavigatorData;
 import org.hsqldb.navigator.RowSetNavigatorDataTable;
 import org.hsqldb.persist.PersistentStore;
@@ -1551,15 +1552,22 @@ public class QuerySpecification extends QueryExpression {
         }
 
         int fullJoinIndex = 0;
-        RangeIterator[] rangeIterators =
-            new RangeIterator[rangeVariables.length];
+        RangeIteratorOR[] rangeIteratorsOR =
+            new RangeIteratorOR[rangeVariables.length];
 
         for (int i = 0; i < rangeVariables.length; i++) {
-            rangeIterators[i] = rangeVariables[i].getIterator(session);
+            rangeIteratorsOR[i] = rangeVariables[i].getIterator(session);
         }
 
         session.sessionContext.rownum = 1;
-
+        if(rangeVariables.length >= 2){
+            RangeIteratorOR last = rangeIteratorsOR[rangeVariables.length - 1];
+            for(int i = rangeVariables.length - 2; i >= 0; i--) {
+                rangeIteratorsOR[i].setConditionsOR(last.getConditions());
+                rangeIteratorsOR[i].setjoinConditionsOR(last.getjoinConditions());
+                rangeIteratorsOR[i].setWhereConditionsOR(last.getwhereConditions());
+            }
+        }
         for (int currentIndex = 0; ; ) {
             if (currentIndex < fullJoinIndex) {
 
@@ -1574,7 +1582,7 @@ public class QuerySpecification extends QueryExpression {
                         currentIndex  = i;
                         end           = false;
 
-                        ((RangeIteratorRight) rangeIterators[i])
+                        ((RangeIteratorRight) rangeIteratorsOR[i])
                             .setOnOuterRows();
 
                         break;
@@ -1586,19 +1594,15 @@ public class QuerySpecification extends QueryExpression {
                 }
             }
 
-            RangeIterator it = rangeIterators[currentIndex];
-
+            RangeIteratorOR it = rangeIteratorsOR[currentIndex];
             if (it.next()) {
                 if (currentIndex < rangeVariables.length - 1) {
                     currentIndex++;
-
                     continue;
                 }
             } else {
                 it.reset();
-
                 currentIndex--;
-
                 continue;
             }
 
@@ -1655,7 +1659,7 @@ public class QuerySpecification extends QueryExpression {
 
                 if (isSimpleDistinct) {
                     for (int i = 1; i < rangeVariables.length; i++) {
-                        rangeIterators[i].reset();
+                        rangeIteratorsOR[i].reset();
                     }
 
                     currentIndex = 0;
@@ -1688,7 +1692,7 @@ public class QuerySpecification extends QueryExpression {
         navigator.reset();
 
         for (int i = 0; i < rangeVariables.length; i++) {
-            rangeIterators[i].reset();
+            rangeIteratorsOR[i].reset();
         }
 
         if (!resultGrouped && !isAggregated) {

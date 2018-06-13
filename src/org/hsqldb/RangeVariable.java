@@ -46,6 +46,7 @@ import org.hsqldb.lib.OrderedHashSet;
 import org.hsqldb.lib.OrderedIntHashSet;
 import org.hsqldb.lib.OrderedLongHashSet;
 import org.hsqldb.navigator.RangeIterator;
+import org.hsqldb.navigator.RangeIteratorOR;
 import org.hsqldb.navigator.RowIterator;
 import org.hsqldb.persist.PersistentStore;
 import org.hsqldb.types.Type;
@@ -1102,7 +1103,7 @@ public class RangeVariable {
         return new RangeIteratorJoined(iterators);
     }
 
-    public static class RangeIteratorBase implements RangeIterator {
+    public static class RangeIteratorBase implements RangeIteratorOR {
 
         Session         session;
         int             rangePosition;
@@ -1116,7 +1117,26 @@ public class RangeVariable {
         public boolean isBeforeFirst() {
             return isBeforeFirst;
         }
+        public RangeVariableConditions[] getConditions(){
+            return null;
+        }
 
+        public RangeVariableConditions[] getwhereConditions(){
+            return null;
+        }
+
+        public RangeVariableConditions[] getjoinConditions(){
+            return null;
+        }
+
+        public void setConditionsOR(RangeVariableConditions[] c){
+        }
+
+        public void setWhereConditionsOR(RangeVariableConditions[] c){
+        }
+
+        public void setjoinConditionsOR(RangeVariableConditions[] c){
+        }
         public boolean next() {
 
             if (isBeforeFirst) {
@@ -1197,7 +1217,11 @@ public class RangeVariable {
         RangeVariableConditions[] conditions;
         RangeVariableConditions[] whereConditions;
         RangeVariableConditions[] joinConditions;
+        RangeVariableConditions[] conditionsOR;
+        RangeVariableConditions[] whereConditionsOR;
+        RangeVariableConditions[] joinConditionsOR;
         int                       condIndex = 0;
+        int                       condIndexOR = 0;
 
         //
         OrderedLongHashSet lookup;
@@ -1230,8 +1254,96 @@ public class RangeVariable {
             }
         }
 
+        public boolean isHasLeftOuterRow() {
+            return hasLeftOuterRow;
+        }
+
         public boolean isBeforeFirst() {
             return isBeforeFirst;
+        }
+
+        public RangeVariableConditions[] getConditions(){
+            return conditions;
+        }
+
+        public RangeVariableConditions[] getwhereConditions(){
+            return whereConditions;
+        }
+
+        public RangeVariableConditions[] getjoinConditions(){
+            return joinConditions;
+    }
+
+        public void setConditionsOR(RangeVariableConditions[] c){
+            conditionsOR = new RangeVariableConditions[c.length]; //为什么不加在conditions上，因为两者的数组大小可能不一样
+            int tableHash = rangeVar.rangeTable.hashCode();
+            for(int i = 0; i < c.length; i++){
+                conditionsOR[i] = new RangeVariableConditions(rangeVar, c[i].isJoin);
+                if(c[i].nonIndexCondition != null){
+                    conditionsOR[i].nonIndexCondition = c[i].nonIndexCondition.duplicate();
+                    conditionsOR[i].nonIndexCondition.filterUniqueTable(tableHash);
+                }
+                if(c[i].terminalCondition != null){
+                    conditionsOR[i].terminalCondition = c[i].terminalCondition.duplicate();
+                    conditionsOR[i].terminalCondition.filterUniqueTable(tableHash);
+                }
+                if(c[i].indexEndCondition != null){
+                    conditionsOR[i].indexEndCondition = c[i].indexEndCondition.duplicate();
+                    conditionsOR[i].indexEndCondition.filterUniqueTable(tableHash);
+                }
+                if(c[i].excludeConditions != null){
+                    conditionsOR[i].excludeConditions = c[i].excludeConditions.duplicate();
+                    conditionsOR[i].excludeConditions.filterUniqueTable(tableHash);
+                }
+            }
+        }
+
+        public void setWhereConditionsOR(RangeVariableConditions[] c){
+            whereConditionsOR = new RangeVariableConditions[c.length];;
+            int tableHash = rangeVar.rangeTable.hashCode();
+            for(int i = 0; i < c.length; i++){
+                whereConditionsOR[i] = new RangeVariableConditions(rangeVar, c[i].isJoin);
+                if(c[i].nonIndexCondition != null){
+                    whereConditionsOR[i].nonIndexCondition = c[i].nonIndexCondition.duplicate();
+                    whereConditionsOR[i].nonIndexCondition.filterUniqueTable(tableHash);
+                }
+                if(c[i].terminalCondition != null){
+                    whereConditionsOR[i].terminalCondition = c[i].terminalCondition.duplicate();
+                    whereConditionsOR[i].terminalCondition.filterUniqueTable(tableHash);
+                }
+                if(c[i].indexEndCondition != null){
+                    whereConditionsOR[i].indexEndCondition = c[i].indexEndCondition.duplicate();
+                    whereConditionsOR[i].indexEndCondition.filterUniqueTable(tableHash);
+                }
+                if(c[i].excludeConditions != null){
+                    whereConditionsOR[i].excludeConditions = c[i].excludeConditions.duplicate();
+                    whereConditionsOR[i].excludeConditions.filterUniqueTable(tableHash);
+                }
+            }
+        }
+
+        public void setjoinConditionsOR(RangeVariableConditions[] c){
+            joinConditionsOR = new RangeVariableConditions[c.length];;
+            int tableHash = rangeVar.rangeTable.hashCode();
+            for(int i = 0; i < c.length; i++){
+                joinConditionsOR[i] = new RangeVariableConditions(rangeVar, c[i].isJoin);
+                if(c[i].nonIndexCondition != null){
+                    joinConditionsOR[i].nonIndexCondition = c[i].nonIndexCondition.duplicate();
+                    joinConditionsOR[i].nonIndexCondition.filterUniqueTable(tableHash);
+                }
+                if(c[i].terminalCondition != null){
+                    joinConditionsOR[i].terminalCondition = c[i].terminalCondition.duplicate();
+                    joinConditionsOR[i].terminalCondition.filterUniqueTable(tableHash);
+                }
+                if(c[i].indexEndCondition != null){
+                    joinConditionsOR[i].indexEndCondition = c[i].indexEndCondition.duplicate();
+                    joinConditionsOR[i].indexEndCondition.filterUniqueTable(tableHash);
+                }
+                if(c[i].excludeConditions != null){
+                    joinConditionsOR[i].excludeConditions = c[i].excludeConditions.duplicate();
+                    joinConditionsOR[i].excludeConditions.filterUniqueTable(tableHash);
+                }
+            }
         }
 
         public boolean next() {
@@ -1244,6 +1356,7 @@ public class RangeVariable {
                 throw Error.error(ErrorCode.X_40502);
             }
 
+            boolean result = false;
             while (condIndex < conditions.length) {
                 if (isBeforeFirst) {
                     isBeforeFirst = false;
@@ -1251,7 +1364,7 @@ public class RangeVariable {
                     initialiseIterator();
                 }
 
-                boolean result = findNext();
+                result = findNext();
 
                 if (result) {
                     return true;
@@ -1484,9 +1597,36 @@ public class RangeVariable {
                 Expression e = conditions[condIndex].excludeConditions;
 
                 if (e != null && e.testCondition(session)) {
-                    continue;
+                     continue;
                 }
-
+                // OR
+                int condIndexTmp = 0, flag = 0;
+                if(conditionsOR != null){
+                    for(condIndexTmp = 0, flag = 0; condIndexTmp < conditionsOR.length; condIndexTmp++) {
+                        if (conditionsOR != null && conditionsOR[condIndexTmp].terminalCondition != null) {
+                            if (!conditionsOR[condIndexTmp].terminalCondition.testCondition(session)) {
+                                flag ++;
+                            }
+                        }
+                    }
+                    if(flag == conditionsOR.length)break;
+                    for(condIndexTmp = 0, flag = 0; condIndexTmp < conditionsOR.length; condIndexTmp++){
+                        if (joinConditionsOR != null && joinConditionsOR[condIndexTmp].nonIndexCondition != null) {
+                            if (!joinConditionsOR[condIndexTmp].nonIndexCondition.testCondition(session)) {
+                                flag++;
+                            }
+                        }
+                    }
+                    if(flag == conditionsOR.length)continue;
+                    for(condIndexTmp = 0, flag = 0; condIndexTmp < conditionsOR.length; condIndexTmp++){
+                        if (conditionsOR != null && conditionsOR[condIndexTmp].excludeConditions != null){
+                            if(conditionsOR[condIndexTmp].excludeConditions.testCondition(session)) {
+                                flag++;
+                            }
+                        }
+                    }
+                    if(flag == conditionsOR.length)continue;
+                }
                 addFoundRow();
 
                 hasLeftOuterRow = false;
@@ -1508,7 +1648,6 @@ public class RangeVariable {
 
             return result;
         }
-
         private void addFoundRow() {
 
             if (rangeVar.isRightJoin) {
@@ -1749,7 +1888,6 @@ public class RangeVariable {
         public Object getField(int col) {
             return currentData[col];
         }
-
         public boolean next() {
             return false;
         }
@@ -1817,6 +1955,7 @@ public class RangeVariable {
         boolean             reversed;
         boolean             hasIndex;
 
+
         RangeVariableConditions(RangeVariable rangeVar, boolean isJoin) {
             this.rangeVar = rangeVar;
             this.isJoin   = isJoin;
@@ -1827,6 +1966,10 @@ public class RangeVariable {
             this.rangeVar     = base.rangeVar;
             this.isJoin       = base.isJoin;
             nonIndexCondition = base.nonIndexCondition;
+        }
+
+        int getBelongRangVar(){
+            return rangeVar.rangeTable.hashCode();
         }
 
         boolean hasIndexCondition() {

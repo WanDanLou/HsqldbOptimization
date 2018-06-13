@@ -2161,18 +2161,22 @@ public class Expression implements Cloneable {
         if(this.opType == OpTypes.AND){
             Expression l = this.getLeftNode().findNodeIn(e);
             Expression r = this.getRightNode().findNodeIn(e);
-            if(l == null){
+            if(l == null && r == null){
+                return null;
+            }
+            else if(l == null) {
+                if(r.isTrue())return Expression.EXPR_TRUE;
                 return r;
             }
-            else{
-                if(r == null) {
-                    return l;
-                }
-                else {
-                    if(l.isTrue())return r.isTrue()?Expression.EXPR_TRUE:r;
-                    else if(r.isTrue())return l;
-                    else return new ExpressionLogical(OpTypes.AND, l, r);
-                }
+            else if(r == null) {
+                if(l.isTrue())return Expression.EXPR_TRUE;
+                return l;
+            }
+            else {
+                if(l.isTrue() && r.isTrue())return Expression.EXPR_TRUE;
+                else if(l.isTrue())return r;
+                else if(r.isTrue())return l;
+                else return new ExpressionLogical(OpTypes.AND, l, r);
             }
         }
         else{
@@ -2194,6 +2198,7 @@ public class Expression implements Cloneable {
             Expression r = this.getRightNode().extractFromOrExpression();
             Expression same = l.findNodeIn(r);
             if(same == null)return new ExpressionLogical(OpTypes.OR, l, r);
+            else if(same.isTrue())return new ExpressionLogical(OpTypes.OR, l, r);
             else return new ExpressionLogical(OpTypes.AND,new ExpressionLogical(OpTypes.OR, l, r), same);
         }
         else if(this.opType == OpTypes.AND){
@@ -2204,14 +2209,52 @@ public class Expression implements Cloneable {
         return this;
     }
 
+
     public void output(){
         if(this.opType != OpTypes.AND && this.opType != OpTypes.OR)return;
-        System.out.print("(");
+        if(this.opType == OpTypes.OR)System.out.print("(");
         this.getLeftNode().output();
-        System.out.print(")");
         System.out.print(this.opType);
-        System.out.print("(");
         this.getRightNode().output();
-        System.out.print(")");
+        if(this.opType == OpTypes.OR)System.out.print(")");
+    }
+
+    public Expression removeTrue(){
+        if(this.opType != OpTypes.AND && this.opType != OpTypes.OR) return this;
+        Expression l = this.getLeftNode().removeTrue();
+        Expression r = this.getRightNode().removeTrue();
+        if(this.opType == OpTypes.AND){
+            if(l.isTrue() && r.isTrue())return Expression.EXPR_TRUE;
+            else if(l.isTrue()) return r;
+            else if(r.isTrue()) return l;
+            else return new ExpressionLogical(OpTypes.AND, l, r);
+        }
+        else {
+            if(l.isTrue() || r.isTrue())return Expression.EXPR_TRUE;
+            else return new ExpressionLogical(OpTypes.OR, l, r);
+        }
+    }
+
+    public boolean checkUniqueTable(int hash){ //true 代表只用上这个表
+        if(this.opType == OpTypes.COLUMN){
+            return this.getRangeVariable().rangeTable.hashCode() == hash;
+        }
+        boolean res = true;
+        for(int i = 0; i < nodes.length; i++){
+            res = res && nodes[i].checkUniqueTable(hash);
+        }
+        return res;
+    }
+    public void filterUniqueTable(int hash) {
+        if(this.opType != OpTypes.AND && this.opType != OpTypes.OR){
+            if(!checkUniqueTable(hash)) {//有其他表
+                this.opType = OpTypes.VALUE;
+                this.valueData = true;
+            }
+            return;
+        }
+        for(int i = 0; i < nodes.length; i++){
+            nodes[i].filterUniqueTable(hash);
+        }
     }
 }

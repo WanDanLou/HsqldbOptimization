@@ -54,4 +54,5 @@ public interface RowIterator {
     void release();
 
     long getRowId();
+
 }

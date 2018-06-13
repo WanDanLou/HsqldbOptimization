@@ -1,6 +1,3 @@
--- count 122
--- Lineitem 主键 L_ORDERKEY,L_LINENUMBER /6001215
--- part 主键 P_PARTKEY /200000
 :x
 :o
 select
