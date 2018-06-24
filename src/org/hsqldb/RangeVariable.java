@@ -1282,18 +1282,22 @@ public class RangeVariable {
                 if(c[i].nonIndexCondition != null){
                     conditionsOR[i].nonIndexCondition = c[i].nonIndexCondition.duplicate();
                     conditionsOR[i].nonIndexCondition.filterUniqueTable(tableHash);
+                    conditionsOR[i].nonIndexCondition = conditionsOR[i].nonIndexCondition.removeTrue();
                 }
                 if(c[i].terminalCondition != null){
                     conditionsOR[i].terminalCondition = c[i].terminalCondition.duplicate();
                     conditionsOR[i].terminalCondition.filterUniqueTable(tableHash);
+                    conditionsOR[i].terminalCondition = conditionsOR[i].terminalCondition.removeTrue();
                 }
                 if(c[i].indexEndCondition != null){
                     conditionsOR[i].indexEndCondition = c[i].indexEndCondition.duplicate();
                     conditionsOR[i].indexEndCondition.filterUniqueTable(tableHash);
+                    conditionsOR[i].indexEndCondition = conditionsOR[i].indexEndCondition.removeTrue();
                 }
                 if(c[i].excludeConditions != null){
                     conditionsOR[i].excludeConditions = c[i].excludeConditions.duplicate();
                     conditionsOR[i].excludeConditions.filterUniqueTable(tableHash);
+                    conditionsOR[i].excludeConditions = conditionsOR[i].excludeConditions.removeTrue();
                 }
             }
         }
@@ -1306,18 +1310,22 @@ public class RangeVariable {
                 if(c[i].nonIndexCondition != null){
                     whereConditionsOR[i].nonIndexCondition = c[i].nonIndexCondition.duplicate();
                     whereConditionsOR[i].nonIndexCondition.filterUniqueTable(tableHash);
+                    whereConditionsOR[i].nonIndexCondition = whereConditionsOR[i].nonIndexCondition.removeTrue();
                 }
                 if(c[i].terminalCondition != null){
                     whereConditionsOR[i].terminalCondition = c[i].terminalCondition.duplicate();
                     whereConditionsOR[i].terminalCondition.filterUniqueTable(tableHash);
+                    whereConditionsOR[i].terminalCondition = whereConditionsOR[i].terminalCondition.removeTrue();
                 }
                 if(c[i].indexEndCondition != null){
                     whereConditionsOR[i].indexEndCondition = c[i].indexEndCondition.duplicate();
                     whereConditionsOR[i].indexEndCondition.filterUniqueTable(tableHash);
+                    whereConditionsOR[i].indexEndCondition = whereConditionsOR[i].indexEndCondition.removeTrue();
                 }
                 if(c[i].excludeConditions != null){
                     whereConditionsOR[i].excludeConditions = c[i].excludeConditions.duplicate();
                     whereConditionsOR[i].excludeConditions.filterUniqueTable(tableHash);
+                    whereConditionsOR[i].excludeConditions = whereConditionsOR[i].excludeConditions.removeTrue();
                 }
             }
         }
@@ -1330,18 +1338,22 @@ public class RangeVariable {
                 if(c[i].nonIndexCondition != null){
                     joinConditionsOR[i].nonIndexCondition = c[i].nonIndexCondition.duplicate();
                     joinConditionsOR[i].nonIndexCondition.filterUniqueTable(tableHash);
+                    joinConditionsOR[i].nonIndexCondition = joinConditionsOR[i].nonIndexCondition.removeTrue();
                 }
                 if(c[i].terminalCondition != null){
                     joinConditionsOR[i].terminalCondition = c[i].terminalCondition.duplicate();
                     joinConditionsOR[i].terminalCondition.filterUniqueTable(tableHash);
+                    joinConditionsOR[i].terminalCondition = joinConditionsOR[i].terminalCondition.removeTrue();
                 }
                 if(c[i].indexEndCondition != null){
                     joinConditionsOR[i].indexEndCondition = c[i].indexEndCondition.duplicate();
                     joinConditionsOR[i].indexEndCondition.filterUniqueTable(tableHash);
+                    joinConditionsOR[i].indexEndCondition = joinConditionsOR[i].indexEndCondition.removeTrue();
                 }
                 if(c[i].excludeConditions != null){
                     joinConditionsOR[i].excludeConditions = c[i].excludeConditions.duplicate();
                     joinConditionsOR[i].excludeConditions.filterUniqueTable(tableHash);
+                    joinConditionsOR[i].excludeConditions = joinConditionsOR[i].excludeConditions.removeTrue();
                 }
             }
         }
@@ -1600,8 +1612,8 @@ public class RangeVariable {
                      continue;
                 }
                 // OR
-                int condIndexTmp = 0, flag = 0;
                 if(conditionsOR != null){
+                    int condIndexTmp = 0, flag = 0;
                     for(condIndexTmp = 0, flag = 0; condIndexTmp < conditionsOR.length; condIndexTmp++) {
                         if (conditionsOR != null && conditionsOR[condIndexTmp].terminalCondition != null) {
                             if (!conditionsOR[condIndexTmp].terminalCondition.testCondition(session)) {
